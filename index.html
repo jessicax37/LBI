@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -241,6 +242,16 @@ function nextTwo(){
   return(up.length>=2?up:[...up,...EVENTS]).slice(0,2);
 }
 
+// ── MAPS — works on Apple and Android ───────────────────
+function openMaps(e) {
+  e.preventDefault();
+  const isApple = /iPhone|iPad|iPod|Mac/.test(navigator.userAgent) && !window.MSStream;
+  const url = isApple
+    ? "https://maps.apple.com/?ll=39.6720,-74.2190&q=Route+72+Causeway&z=13"
+    : "https://www.google.com/maps/search/Route+72+Causeway/@39.6720,-74.2190,13z";
+  window.open(url, "_blank");
+}
+
 async function fetchAll(){
   const ds=new Date().toISOString().slice(0,10).replace(/-/g,"");
   const[wR,tR,wtR]=await Promise.allSettled([
@@ -409,9 +420,9 @@ function render({weather,rawTides,waterTemp}){
         <span class="sec-head">Bridge Traffic</span>
       </div>
       <p style="font-size:.75rem;color:var(--muted);margin-bottom:12px">📍 Route 72 Causeway · Tap to check live traffic</p>
-      <a class="bridge-btn" href="https://maps.apple.com/?ll=39.6720,-74.2190&q=Route+72+Causeway&z=13" target="_blank" rel="noopener">
+      <a class="bridge-btn" href="#" onclick="openMaps(event)" rel="noopener">
         <span style="font-size:1.2rem">🗺️</span>
-        <div><div class="bridge-title">Apple Maps</div><div class="bridge-sub">Open Route 72 with live traffic</div></div>
+        <div><div class="bridge-title">Open in Maps</div><div class="bridge-sub">Route 72 Causeway · live traffic</div></div>
         <span class="bridge-arr">›</span>
       </a>
       <div class="note-row" style="margin-top:10px">ℹ️ Opens live traffic in your maps app</div>
