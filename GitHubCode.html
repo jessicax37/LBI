@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+  <meta name="description" content="Live beach conditions for Long Beach Island, NJ — tides, water temp, weather, biting fly risk and more."/>
+  <title>LBI Beach Day</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700;9..40,900&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --ocean:#1a6fa8; --ocean-lt:#3d9fd3; --foam:#e8f4fb;
+      --dusk:#0d2b45; --teal:#0e8a7a; --amber:#d47e18;
+      --coral:#c94f3a; --green:#3a7d44;
+      --text:#1a2e3d; --muted:#6b8799;
+      --card:#ffffff; --page:#f0f7fc; --border:#d0e5f2;
+      --r:16px; --shadow:0 2px 16px rgba(26,111,168,.09);
+    }
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    html{font-size:16px;-webkit-text-size-adjust:100%}
+    body{font-family:'DM Sans',sans-serif;background:var(--page);color:var(--text);padding-bottom:48px}
+
+    .hdr{background:linear-gradient(155deg,var(--dusk) 0%,#1a5080 100%);padding:28px 20px 32px;position:relative;overflow:hidden}
+    .hdr::after{content:'';position:absolute;bottom:-28px;left:-10px;right:-10px;height:56px;background:var(--page);border-radius:50% 50% 0 0/100% 100% 0 0}
+    .hdr-inner{max-width:480px;margin:0 auto;position:relative;z-index:1}
+    .app-name{font-family:'DM Serif Display',serif;font-size:2rem;color:#fff;letter-spacing:-.02em}
+    .app-sub{font-size:.75rem;color:rgba(255,255,255,.6);margin-top:3px;letter-spacing:.09em;text-transform:uppercase}
+    .loc-badge{display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:999px;padding:6px 14px;color:#fff;font-size:.82rem;font-weight:500;margin-top:14px}
+    .live-dot{width:7px;height:7px;border-radius:50%;background:#4cd964}
+
+    .main{max-width:480px;margin:0 auto;padding:28px 14px 0;display:flex;flex-direction:column;gap:14px}
+    .card{background:var(--card);border-radius:var(--r);padding:18px;box-shadow:var(--shadow);border:1px solid var(--border)}
+    .card-title{font-size:.72rem;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:14px}
+    .sec-head{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:0}
+
+    /* COUNTDOWN */
+    .cdown{border-radius:var(--r);padding:18px;background:linear-gradient(135deg,#0d1a2e,#142844);box-shadow:var(--shadow)}
+    .cdown-head{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+    .cdown-head span{font-size:1rem;font-weight:700;color:#fff}
+    .cdown-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .cal{border-radius:12px;overflow:hidden;box-shadow:0 3px 10px rgba(0,0,0,.3)}
+    .cal-tab{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 10px;font-size:.72rem;font-weight:800;letter-spacing:.12em;color:#fff}
+    .cal-body{background:#fff;padding:12px 10px;text-align:center}
+    .cal-n{font-size:2.6rem;font-weight:900;line-height:1;color:var(--text)}
+    .cal-n.soon{color:var(--coral)}
+    .cal-away{font-size:.65rem;font-weight:700;color:var(--muted);margin-top:2px}
+    .cal-hr{border:none;border-top:1px solid var(--border);margin:8px 12px}
+    .cal-name{font-size:.75rem;font-weight:600;color:var(--text);margin-top:4px}
+    .cal-date{font-size:.65rem;color:var(--muted);margin-top:2px;padding-bottom:4px}
+
+    /* CONDITIONS */
+    .cond-row{display:flex}
+    .cond-tile{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px}
+    .cdiv{width:1px;background:var(--border);align-self:stretch}
+    .cond-ico{font-size:1.3rem}
+    .cond-lbl{font-size:.65rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.06em}
+    .cond-val{font-size:1.15rem;font-weight:700;color:var(--text)}
+    .cond-sub{font-size:.68rem;color:var(--muted)}
+    .badge{font-size:.62rem;padding:2px 7px;border-radius:999px;background:rgba(26,111,168,.1);color:var(--ocean);font-weight:600}
+    hr.dv{border:none;border-top:1px solid var(--border);margin:12px 0}
+    .fly-row{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:10px}
+    .fly-row.out,.fly-row.low{background:#f0faf2}
+    .fly-row.mod{background:#fdf6e8}
+    .fly-row.high{background:#fdf0ee}
+    .fly-ball{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .fly-row.out .fly-ball,.fly-row.low .fly-ball{background:#c0ddc0}
+    .fly-row.mod .fly-ball{background:#f0d49a}
+    .fly-row.high .fly-ball{background:#f0b8b0}
+    .fly-dot{width:11px;height:11px;border-radius:50%}
+    .fly-row.out .fly-dot,.fly-row.low .fly-dot{background:#3a7d44}
+    .fly-row.mod .fly-dot{background:#c07010}
+    .fly-row.high .fly-dot{background:#c04030}
+    .fly-title{font-size:.88rem;font-weight:600}
+    .fly-row.out .fly-title,.fly-row.low .fly-title{color:#2a6034}
+    .fly-row.mod .fly-title{color:#8a5010}
+    .fly-row.high .fly-title{color:#903020}
+    .fly-desc{font-size:.72rem;color:var(--muted);margin-top:1px}
+
+    /* SURF */
+    .surf-row{display:flex}
+    .surf-tile{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 4px;text-align:center}
+    .surf-ico{font-size:1.25rem}
+    .surf-lbl{font-size:.65rem;color:var(--muted);font-weight:500;text-transform:uppercase;letter-spacing:.05em}
+    .surf-val{font-size:1rem;font-weight:700;color:var(--text)}
+    .surf-sub{font-size:.67rem;color:var(--muted)}
+    .rip-row{display:flex;align-items:flex-start;gap:12px;margin-top:4px}
+    .rip-ico{font-size:1.4rem;flex-shrink:0}
+    .rip-lbl{font-size:.72rem;color:var(--muted)}
+    .rip-val{font-size:.95rem;font-weight:700}
+    .rip-val.low{color:var(--green)}
+    .rip-val.mod{color:var(--amber)}
+    .rip-val.warn{color:var(--coral)}
+    .rip-note{font-size:.68rem;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px solid var(--border);line-height:1.55}
+
+    /* TIDES */
+    .tide-list{display:flex;flex-direction:column}
+    .tide-item{display:flex;align-items:center;gap:12px;padding:10px 4px}
+    .tide-item+.tide-item{border-top:1px solid var(--border)}
+    .tide-arr{font-size:1.3rem}
+    .tide-arr.hi{color:var(--ocean)}
+    .tide-arr.lo{color:var(--teal)}
+    .tide-lbl{font-size:.88rem;font-weight:600;flex:1}
+    .tide-time{font-size:.82rem;color:var(--muted)}
+    .tide-ht{font-size:.88rem;font-weight:700;font-variant-numeric:tabular-nums}
+    .tide-src{font-size:.63rem;color:var(--muted);margin-top:10px;display:flex;align-items:center;gap:4px}
+    .tide-curve{margin:10px 0 4px}
+    .tide-curve svg{display:block;width:100%}
+
+    /* RAIN */
+    .rain-wrap{margin-top:6px}
+    .rain-wrap svg{display:block;width:100%}
+    .rain-xl-row{display:flex;justify-content:space-between;padding:2px 2px 0}
+    .rain-xl{font-size:.63rem;color:var(--muted)}
+
+    /* SUN */
+    .sun-row{display:flex}
+    .sun-tile{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:12px 6px}
+    .sun-tile+.sun-tile{border-left:1px solid var(--border)}
+    .sun-ico{font-size:1.6rem}
+    .sun-val{font-size:1rem;font-weight:700;font-variant-numeric:tabular-nums}
+    .sun-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:500}
+
+    /* LINKS */
+    .flood-note{font-size:.75rem;color:var(--muted);margin-bottom:12px;line-height:1.55}
+    .link-btn{display:flex;align-items:center;gap:13px;padding:12px 13px;background:var(--page);border-radius:12px;border:1px solid var(--border);text-decoration:none;margin-bottom:8px;transition:background .15s}
+    .link-btn:last-of-type{margin-bottom:0}
+    .link-btn:hover{background:var(--foam)}
+    .link-ico{width:38px;height:38px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0}
+    .link-ico.teal{background:linear-gradient(135deg,#0e8a7a,#1ab8a8)}
+    .link-ico.amber{background:linear-gradient(135deg,#b06010,#e09030)}
+    .link-ico.blue{background:linear-gradient(135deg,#0060c0,#20ace0)}
+    .link-title{font-size:.88rem;font-weight:600;color:var(--text)}
+    .link-desc{font-size:.72rem;color:var(--muted);margin-top:2px}
+    .link-arr{font-size:.8rem;color:var(--muted);margin-left:auto}
+    .note-row{font-size:.63rem;color:var(--muted);text-align:center;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:4px}
+
+    /* BRIDGE */
+    .bridge-btn{display:flex;align-items:center;gap:13px;padding:14px 16px;border-radius:13px;text-decoration:none;background:linear-gradient(135deg,#0060c0,#20ace0);transition:opacity .15s}
+    .bridge-btn:hover{opacity:.9}
+    .bridge-title{font-size:.9rem;font-weight:700;color:#fff}
+    .bridge-sub{font-size:.72rem;color:rgba(255,255,255,.78);margin-top:2px}
+    .bridge-arr{margin-left:auto;color:rgba(255,255,255,.6);font-size:.9rem}
+
+    /* EXPLORE */
+    .explore-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .explore-tile{display:flex;flex-direction:column;align-items:center;gap:8px;padding:14px 10px;background:var(--page);border-radius:13px;border:1px solid var(--border);text-decoration:none;transition:background .15s}
+    .explore-tile:hover{background:var(--foam)}
+    .explore-ico{width:46px;height:46px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:1.3rem}
+    .explore-lbl{font-size:.78rem;font-weight:600;color:var(--text);text-align:center}
+
+    /* MOON */
+    .moon-row{display:flex;align-items:center;gap:14px;padding:4px 0}
+    .moon-em{font-size:2.4rem;line-height:1}
+    .moon-name{font-size:1rem;font-weight:600}
+    .moon-sub{font-size:.75rem;color:var(--muted);margin-top:3px}
+
+    /* MISC */
+    .updated{font-size:.65rem;color:var(--muted);text-align:right;margin-bottom:2px}
+    .loading{text-align:center;padding:40px 0;color:var(--muted);font-size:.9rem}
+    .spinner{width:28px;height:28px;border:3px solid var(--border);border-top-color:var(--ocean);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .footer{max-width:480px;margin:20px auto 0;padding:0 14px;font-size:.67rem;color:var(--muted);text-align:center;line-height:1.8}
+    .footer a{color:var(--ocean);text-decoration:none}
+
+    @media(prefers-color-scheme:dark){
+      :root{--page:#0d1f2d;--card:#152535;--border:#1e3a50;--text:#e8f2f8;--muted:#7aa0b8;--foam:#1a3a50}
+      .cdiv{background:#1e3a50}
+      .fly-row.out,.fly-row.low{background:#0d2010}
+      .fly-row.mod{background:#201800}
+      .fly-row.high{background:#200a08}
+      .link-btn{background:#0d1f2d}
+      .link-btn:hover{background:#1a3a50}
+      .explore-tile{background:#0d1f2d}
+      .explore-tile:hover{background:#1a3a50}
+      .cal-body{background:#1a2e3d}
+      .cal-n{color:#e8f2f8}
+      .hdr::after{background:var(--page)}
+    }
+  </style>
+</head>
+<body>
+
+<div class="hdr">
+  <div class="hdr-inner">
+    <div class="app-name">LBI Beach Day</div>
+    <div class="app-sub">Long Beach Island, New Jersey</div>
+    <div class="loc-badge"><span class="live-dot"></span>Beach Haven</div>
+  </div>
+</div>
+
+<div class="main" id="app">
+  <div class="loading"><div class="spinner"></div>Loading beach conditions…</div>
+</div>
+<div class="footer" id="footer" style="display:none">
+  Weather: <a href="https://open-meteo.com" target="_blank">Open-Meteo</a> ·
+  Tides: <a href="https://tidesandcurrents.noaa.gov" target="_blank">NOAA Sandy Hook</a> ·
+  Water temp: <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8534720" target="_blank">NOAA Steel Pier, AC</a><br>
+  Ocean tide offsets verified by local Master Captain · Source: Fisherman's Headquarters, Ship Bottom NJ<br><br>
+  Also on the <strong>App Store</strong> — search <em>LBI Beach Day</em>
+</div>
+
+<script>
+const LAT=39.5571,LON=-74.2427,SANDY_HOOK="8531680",STEEL_PIER="8534720",HIGH_OFF=-30,LOW_OFF=47;
+const addMin=(d,m)=>new Date(d.getTime()+m*60000);
+const fmtTime=d=>d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"});
+const fmtDate=s=>{if(!s)return"--";return new Date(s).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"})};
+const wDir=deg=>["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"][Math.round(deg/22.5)%16];
+
+function moonPhase(){
+  const k=new Date("1989-01-06T18:22:00Z").getTime(),s=29.53058867*86400000;
+  let a=(Date.now()-k)%s;if(a<0)a+=s;const f=a/s,i=Math.floor(f*8);
+  return{emoji:["🌑","🌒","🌓","🌔","🌕","🌖","🌗","🌘"][i],name:["New Moon","Waxing Crescent","First Quarter","Waxing Gibbous","Full Moon","Waning Gibbous","Last Quarter","Waning Crescent"][i]};
+}
+
+function flyRisk(mo,temp,wd){
+  if(mo<6||mo>9)return{cls:"out",title:"Out of Season",desc:"No biting flies this time of year."};
+  const peak=mo===7||mo===8,warm=temp>=70,on=wd>=180&&wd<=315;
+  if(peak&&warm&&on)return{cls:"high",title:"High Risk — Greenheads Active",desc:"Bring bug spray. Flies most active mid-morning to dusk."};
+  if(warm&&on)return{cls:"mod",title:"Moderate Risk",desc:"Some fly activity possible. Consider bug spray."};
+  if(peak&&warm)return{cls:"mod",title:"Moderate Risk",desc:"Peak season but wind is helping. Stay alert."};
+  return{cls:"low",title:"Low Risk",desc:"In season but conditions aren't favorable for flies today."};
+}
+
+function daysUntil(mo,d){
+  const t=new Date();t.setHours(0,0,0,0);
+  const x=new Date(t.getFullYear(),mo-1,d);
+  if(x<t)x.setFullYear(x.getFullYear()+1);
+  return Math.round((x-t)/86400000);
+}
+
+const EVENTS=[
+  {short:"Memorial Day",month:5,day:26,label:"MAY",sym:"🚩",color:"#0060c0"},
+  {short:"4th of July", month:7,day:4, label:"JUL",sym:"✨",color:"#c03030"},
+  {short:"Labor Day",   month:9,day:1, label:"SEP",sym:"⛱", color:"#e07000"},
+  {short:"Columbus Day",month:10,day:13,label:"OCT",sym:"🍂",color:"#7a5020"},
+];
+
+function nextTwo(){
+  const t=new Date();t.setHours(0,0,0,0);
+  const up=EVENTS.filter(e=>new Date(t.getFullYear(),e.month-1,e.day)>=t);
+  return(up.length>=2?up:[...up,...EVENTS]).slice(0,2);
+}
+
+async function fetchAll(){
+  const ds=new Date().toISOString().slice(0,10).replace(/-/g,"");
+  const[wR,tR,wtR]=await Promise.allSettled([
+    fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&hourly=precipitation_probability,temperature_2m,windspeed_10m,winddirection_10m&daily=sunrise,sunset,uv_index_max&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FNew_York&forecast_days=1`),
+    fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=${ds}&end_date=${ds}&station=${SANDY_HOOK}&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&application=LBIBeachDay&format=json`),
+    fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=${STEEL_PIER}&product=water_temperature&units=english&time_zone=lst_ldt&format=json&application=LBIBeachDay`)
+  ]);
+  let weather=null,rawTides=[],waterTemp=null;
+  if(wR.status==="fulfilled"&&wR.value.ok)weather=await wR.value.json();
+  if(tR.status==="fulfilled"&&tR.value.ok){const j=await tR.value.json();rawTides=j.predictions||[];}
+  if(wtR.status==="fulfilled"&&wtR.value.ok){const j=await wtR.value.json();const l=j.data&&j.data[j.data.length-1];if(l)waterTemp=parseFloat(l.v);}
+  return{weather,rawTides,waterTemp};
+}
+
+function processTides(raw){
+  return raw.map(t=>{
+    const[dp,tp]=t.t.split(" ");
+    const base=new Date(`${dp}T${tp}:00`);
+    const hi=t.type==="H";
+    return{time:addMin(base,hi?HIGH_OFF:LOW_OFF),height:parseFloat(t.v).toFixed(1),isHigh:hi};
+  }).sort((a,b)=>a.time-b.time);
+}
+
+function rainSVG(hourly){
+  if(!hourly)return'<p style="font-size:.8rem;color:var(--muted);text-align:center">No data</p>';
+  const W=300,H=72,pts=[];
+  for(let h=6;h<=21;h++)pts.push({v:hourly.precipitation_probability[h]??0});
+  const xs=pts.map((_,i)=>(i/(pts.length-1))*W);
+  const ys=pts.map(p=>H-(p.v/100)*(H-10)-6);
+  let d=`M${xs[0]} ${ys[0]}`;
+  for(let i=1;i<xs.length;i++){const cx=(xs[i-1]+xs[i])/2;d+=` C${cx} ${ys[i-1]},${cx} ${ys[i]},${xs[i]} ${ys[i]}`;}
+  const area=`${d} L${xs[xs.length-1]} ${H} L${xs[0]} ${H} Z`;
+  const peak=Math.max(...pts.map(p=>p.v)),pi=pts.findIndex(p=>p.v===peak);
+  const nh=new Date().getHours()+new Date().getMinutes()/60;
+  const nx=Math.max(0,Math.min(W,((nh-6)/15)*W));
+  return`<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" height="72"><defs><linearGradient id="rg" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#1a6fa8" stop-opacity=".22"/><stop offset="100%" stop-color="#1a6fa8" stop-opacity=".02"/></linearGradient></defs><path d="${area}" fill="url(#rg)"/><path d="${d}" fill="none" stroke="#1a6fa8" stroke-width="2"/>${peak>5?`<text x="${xs[pi]}" y="${ys[pi]-5}" text-anchor="middle" font-size="9" fill="#1a6fa8" font-weight="700" font-family="DM Sans,sans-serif">${peak}%</text>`:''}<line x1="${nx}" y1="0" x2="${nx}" y2="${H}" stroke="#1a6fa8" stroke-width="1" stroke-dasharray="3,2" opacity=".5"/><circle cx="${nx}" cy="${H/2}" r="3" fill="#1a6fa8" opacity=".7"/></svg>`;
+}
+
+function tideSVG(tides){
+  if(!tides.length)return'';
+  const W=300,H=48,now=new Date(),ds=new Date(now);ds.setHours(0,0,0,0);
+  const de=new Date(now);de.setHours(23,59,59,999);
+  const tx=d=>((d-ds)/(de-ds))*W,ty=h=>H-((h/6)*(H-10))-6;
+  const pts=tides.map(t=>({x:tx(t.time),y:ty(parseFloat(t.height))}));
+  if(pts.length<2)return'';
+  let d=`M${pts[0].x} ${pts[0].y}`;
+  for(let i=1;i<pts.length;i++){const cx=(pts[i-1].x+pts[i].x)/2;d+=` C${cx} ${pts[i-1].y},${cx} ${pts[i].y},${pts[i].x} ${pts[i].y}`;}
+  const nx=Math.max(0,Math.min(W,tx(now)));
+  return`<div class="tide-curve"><svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" height="48"><path d="${d}" fill="none" stroke="var(--border)" stroke-width="1.5"/><line x1="${nx}" y1="0" x2="${nx}" y2="${H}" stroke="var(--ocean)" stroke-width="1" stroke-dasharray="3,2" opacity=".6"/><circle cx="${nx}" cy="${H/2}" r="3.5" fill="var(--ocean)"/><text x="${Math.min(nx+4,W-26)}" y="11" font-size="8" fill="var(--ocean)" font-weight="700" font-family="DM Sans,sans-serif">now</text></svg></div>`;
+}
+
+function render({weather,rawTides,waterTemp}){
+  const tides=processTides(rawTides),moon=moonPhase(),evs=nextTwo();
+  const cw=weather?.current_weather,mo=new Date().getMonth()+1;
+  const airT=cw?.temperature??null,wd=cw?.winddirection??0;
+  const fly=flyRisk(mo,airT??60,wd);
+  const fmtT=v=>v!=null?Math.round(v)+"°F":"--";
+  const uv=weather?.daily?.uv_index_max?.[0];
+  const uvL=uv!=null?(uv<=2?"Low":uv<=5?"Moderate":uv<=7?"High":"Very High"):"--";
+  let daylight="--";
+  if(weather?.daily?.sunrise?.[0]&&weather?.daily?.sunset?.[0]){
+    const sr=new Date(weather.daily.sunrise[0]),ss=new Date(weather.daily.sunset[0]);
+    const m=Math.round((ss-sr)/60000);daylight=`${Math.floor(m/60)}h ${m%60}m`;
+  }
+  const upd=new Date().toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"});
+
+  document.getElementById("app").innerHTML=`
+    <div class="updated">Updated ${upd}</div>
+
+    <div class="cdown">
+      <div class="cdown-head"><span>🌅</span><span>Summer is Coming</span></div>
+      <div class="cdown-grid">${evs.map(e=>{const d=daysUntil(e.month,e.day);return`
+        <div class="cal">
+          <div class="cal-tab" style="background:${e.color}">${e.sym} ${e.label}</div>
+          <div class="cal-body">
+            <div class="cal-n${d<=7?' soon':''}">${d===0?"🎉":d}</div>
+            <div class="cal-away">${d===0?"Today!":"days away"}</div>
+            <hr class="cal-hr"/>
+            <div class="cal-name">${e.short}</div>
+            <div class="cal-date">${e.label} ${e.day}</div>
+          </div>
+        </div>`}).join('')}
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Current Conditions</div>
+      <div class="cond-row">
+        <div class="cond-tile"><span class="cond-ico">🌡️</span><span class="cond-lbl">Air</span><span class="cond-val">${fmtT(airT)}</span></div>
+        <div class="cdiv"></div>
+        <div class="cond-tile"><span class="cond-ico">🌊</span><span class="cond-lbl">Water</span><span class="cond-val">${fmtT(waterTemp)}</span><span class="badge">Steel Pier, AC</span></div>
+        <div class="cdiv"></div>
+        <div class="cond-tile"><span class="cond-ico">💨</span><span class="cond-lbl">Wind</span><span class="cond-val" style="font-size:.95rem">${cw?Math.round(cw.windspeed)+" mph":"--"}</span><span class="cond-sub">${wDir(wd)}</span></div>
+      </div>
+      <hr class="dv"/>
+      <div class="fly-row ${fly.cls}">
+        <div class="fly-ball"><div class="fly-dot"></div></div>
+        <div><div class="fly-title">${fly.title}</div><div class="fly-desc">${fly.desc}</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Surf &amp; Safety</div>
+      <div class="surf-row">
+        <div class="surf-tile"><span class="surf-ico">☀️</span><span class="surf-lbl">Peak UV</span><span class="surf-val">${uv!=null?uv:"--"}</span><span class="surf-sub">${uvL}</span></div>
+        <div class="cdiv"></div>
+        <div class="surf-tile" id="wh"><span class="surf-ico">🌊</span><span class="surf-lbl">Wave Height</span><span class="surf-val">--</span><span class="surf-sub">-- sec period</span></div>
+        <div class="cdiv"></div>
+        <div class="surf-tile" id="wd"><span class="surf-ico">🧭</span><span class="surf-lbl">Swell</span><span class="surf-val">--</span><span class="surf-sub">Direction</span></div>
+      </div>
+      <hr class="dv"/>
+      <div class="rip-row"><span class="rip-ico">🏊</span><div><div class="rip-lbl">Rip Currents</div><div class="rip-val low" id="rip">Checking…</div></div></div>
+      <div class="rip-note">Always follow the guidance of local lifeguards and posted beach flags regarding observed rip current conditions.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Tides · Beach Haven Ocean</div>
+      ${tideSVG(tides)}
+      <div class="tide-list">${tides.slice(0,4).map(t=>`
+        <div class="tide-item">
+          <span class="tide-arr ${t.isHigh?'hi':'lo'}">${t.isHigh?"↑":"↓"}</span>
+          <span class="tide-lbl">${t.isHigh?"High Tide":"Low Tide"}</span>
+          <span class="tide-time">${fmtTime(t.time)}</span>
+          <span class="tide-ht">${t.height} ft</span>
+        </div>`).join('')}
+      </div>
+      <div class="tide-src">ℹ️ Sandy Hook ref · ocean offsets per local Captain</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Rain Chance Today</div>
+      <div class="rain-wrap">${rainSVG(weather?.hourly)}</div>
+      <div class="rain-xl-row"><span class="rain-xl">6a</span><span class="rain-xl">9a</span><span class="rain-xl">12p</span><span class="rain-xl">3p</span><span class="rain-xl">6p</span><span class="rain-xl">9p</span></div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="font-size:1.1rem">🏠</span>
+        <span class="sec-head">Flooding &amp; Road Conditions</span>
+      </div>
+      <p class="flood-note">Live resources for LBI residents monitoring flooding and road conditions.</p>
+      <a class="link-btn" href="https://hudson.dl.stevens-tech.edu/sfas/d/index.shtml?station=U226" target="_blank" rel="noopener">
+        <div class="link-ico teal">📈</div>
+        <div><div class="link-title">Stevens Flood Advisory</div><div class="link-desc">Live bay water level &amp; flood forecast</div></div>
+        <span class="link-arr">↗</span>
+      </a>
+      <a class="link-btn" href="http://lbtpublic.packetalk.net:5350/IVC/views/1-live-view.htm" target="_blank" rel="noopener">
+        <div class="link-ico amber">📹</div>
+        <div><div class="link-title">LBI Live Road Camera</div><div class="link-desc">See current road conditions on the island</div></div>
+        <span class="link-arr">↗</span>
+      </a>
+      <div class="note-row">ℹ️ Opens in a new tab</div>
+    </div>
+
+    <div class="card">
+      <div class="sun-row">
+        <div class="sun-tile"><span class="sun-ico">🌅</span><span class="sun-lbl">Sunrise</span><span class="sun-val">${fmtDate(weather?.daily?.sunrise?.[0])}</span></div>
+        <div class="sun-tile"><span class="sun-ico">🌇</span><span class="sun-lbl">Sunset</span><span class="sun-val">${fmtDate(weather?.daily?.sunset?.[0])}</span></div>
+        <div class="sun-tile"><span class="sun-ico">⏱️</span><span class="sun-lbl">Daylight</span><span class="sun-val" style="font-size:.9rem">${daylight}</span></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+        <div class="link-ico blue" style="width:34px;height:34px;border-radius:9px">🚗</div>
+        <span class="sec-head">Bridge Traffic</span>
+      </div>
+      <p style="font-size:.75rem;color:var(--muted);margin-bottom:12px">📍 Route 72 Causeway · Tap to check live traffic</p>
+      <a class="bridge-btn" href="https://maps.apple.com/?ll=39.6720,-74.2190&q=Route+72+Causeway&z=13" target="_blank" rel="noopener">
+        <span style="font-size:1.2rem">🗺️</span>
+        <div><div class="bridge-title">Apple Maps</div><div class="bridge-sub">Open Route 72 with live traffic</div></div>
+        <span class="bridge-arr">›</span>
+      </a>
+      <div class="note-row" style="margin-top:10px">ℹ️ Opens live traffic in your maps app</div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">Moon Phase</div>
+      <div class="moon-row">
+        <span class="moon-em">${moon.emoji}</span>
+        <div><div class="moon-name">${moon.name}</div><div class="moon-sub">${moon.name==="New Moon"||moon.name==="Full Moon"?"Strong tides — peak fish activity":"Normal tidal activity"}</div></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px">
+        <span style="font-size:1.1rem">🗺️</span>
+        <span class="sec-head">Explore the Island</span>
+      </div>
+      <div class="explore-grid">
+        <a class="explore-tile" href="https://welcometolbi.com/directory/categories/things-to-do/" target="_blank" rel="noopener">
+          <div class="explore-ico" style="background:linear-gradient(135deg,#ff9400,#ffd000)">⭐</div>
+          <span class="explore-lbl">Things to Do</span>
+        </a>
+        <a class="explore-tile" href="https://welcometolbi.com/directory/categories/dining/" target="_blank" rel="noopener">
+          <div class="explore-ico" style="background:linear-gradient(135deg,#d92a2a,#ff6b30)">🍴</div>
+          <span class="explore-lbl">Dining</span>
+        </a>
+        <a class="explore-tile" href="https://welcometolbi.com/directory/categories/kids-stuff/" target="_blank" rel="noopener">
+          <div class="explore-ico" style="background:linear-gradient(135deg,#2cb34b,#66d973)">👨‍👩‍👧</div>
+          <span class="explore-lbl">Kids Stuff</span>
+        </a>
+        <a class="explore-tile" href="https://welcometolbi.com/directory/categories/lodging/" target="_blank" rel="noopener">
+          <div class="explore-ico" style="background:linear-gradient(135deg,#6d44cc,#9972f2)">🛏️</div>
+          <span class="explore-lbl">Lodging</span>
+        </a>
+      </div>
+      <div class="note-row" style="margin-top:12px">ℹ️ Opens welcometolbi.com in a new tab</div>
+    </div>
+  `;
+
+  document.getElementById("footer").style.display="block";
+  fetchMarine();fetchRip();
+}
+
+async function fetchMarine(){
+  try{
+    const r=await fetch(`https://marine-api.open-meteo.com/v1/marine?latitude=${LAT}&longitude=${LON}&hourly=wave_height,wave_period,wave_direction&length_unit=imperial&timezone=America%2FNew_York&forecast_days=1`);
+    if(!r.ok)return;
+    const j=await r.json();
+    const now=new Date();let ci=0,best=Infinity;
+    (j.hourly.time||[]).forEach((t,i)=>{const d=Math.abs(new Date(t)-now);if(d<best){best=d;ci=i;}});
+    const ht=j.hourly.wave_height?.[ci],per=j.hourly.wave_period?.[ci],dir=j.hourly.wave_direction?.[ci];
+    const wh=document.getElementById("wh"),wd=document.getElementById("wd");
+    if(wh)wh.innerHTML=`<span class="surf-ico">🌊</span><span class="surf-lbl">Wave Height</span><span class="surf-val">${ht!=null?ht.toFixed(1)+" ft":"--"}</span><span class="surf-sub">${per!=null?Math.round(per)+" sec period":"--"}</span>`;
+    if(wd)wd.innerHTML=`<span class="surf-ico">🧭</span><span class="surf-lbl">Swell</span><span class="surf-val">${dir!=null?wDir(dir):"--"}</span><span class="surf-sub">Direction</span>`;
+  }catch(e){}
+}
+
+async function fetchRip(){
+  try{
+    const r=await fetch(`https://api.weather.gov/alerts/active?point=${LAT},${LON}`,{headers:{"User-Agent":"LBIBeachDay, lbibeachday@gmail.com"}});
+    if(!r.ok)throw 0;
+    const j=await r.json();const el=document.getElementById("rip");if(!el)return;
+    let lv="Low",cls="low";
+    for(const f of(j.features||[])){
+      const ev=(f.properties?.event||"").toLowerCase(),sv=(f.properties?.severity||"").toLowerCase();
+      if(ev.includes("rip current")){if(sv==="extreme"||sv==="severe"){lv="Warning";cls="warn";break;}else if(sv==="moderate"&&cls!=="warn"){lv="Watch";cls="mod";}else if(lv==="Low"){lv="Advisory";cls="mod";}}
+      else if(ev.includes("beach hazard")||ev.includes("high surf"))if(lv==="Low"){lv="Advisory";cls="mod";}
+    }
+    el.textContent=lv;el.className=`rip-val ${cls}`;
+  }catch(e){const el=document.getElementById("rip");if(el)el.textContent="Check NWS for advisories";}
+}
+
+(async()=>{
+  try{render(await fetchAll());}
+  catch(e){
+    document.getElementById("app").innerHTML=`<div class="card" style="text-align:center;padding:30px"><div style="font-size:2rem;margin-bottom:12px">🌊</div><div style="font-weight:700;margin-bottom:6px">Couldn't load beach data</div><div style="font-size:.8rem;color:var(--muted);margin-bottom:16px">Check your connection and try again.</div><button onclick="location.reload()" style="background:var(--ocean);color:#fff;border:none;padding:10px 24px;border-radius:999px;font-size:.88rem;font-weight:600;cursor:pointer">Retry</button></div>`;
+  }
+})();
+</script>
+</body>
+</html>
