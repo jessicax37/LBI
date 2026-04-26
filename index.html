@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -194,15 +193,15 @@
 </div>
 <div class="footer" id="footer" style="display:none">
   Weather: <a href="https://open-meteo.com" target="_blank">Open-Meteo</a> ·
-  Tides: <a href="https://tidesandcurrents.noaa.gov" target="_blank">NOAA Sandy Hook</a> ·
+  Tides: <a href="https://tidesandcurrents.noaa.gov" target="_blank">NOAA Beach Haven CG Station</a> ·
   Water temp: <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8534720" target="_blank">NOAA Steel Pier, AC</a><br>
   <br>
   Also on the <strong>App Store</strong> — search <em>LBI Beach Day</em>
 </div>
 
 <script>
-const LAT=39.5571,LON=-74.2427,SANDY_HOOK="8531680",STEEL_PIER="8534720",HIGH_OFF=-30,LOW_OFF=47;
-const addMin=(d,m)=>new Date(d.getTime()+m*60000);
+const LAT=39.602278,LON=-74.206944,STEEL_PIER="8534720";
+const PROXY="https://noaa-proxy.jessica-kerchner37.workers.dev";
 const fmtTime=d=>d.toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"});
 const fmtDate=s=>{if(!s)return"--";return new Date(s).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit",timeZone:"America/New_York"})};
 const wDir=deg=>["N","NNE","NE","ENE","E","ESE","SE","SSE","S","SSW","SW","WSW","W","WNW","NW","NNW"][Math.round(deg/22.5)%16];
@@ -256,8 +255,8 @@ async function fetchAll(){
   const ds=new Date().toISOString().slice(0,10).replace(/-/g,"");
   const[wR,tR,wtR]=await Promise.allSettled([
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${LAT}&longitude=${LON}&current_weather=true&hourly=precipitation_probability,temperature_2m,windspeed_10m,winddirection_10m&daily=sunrise,sunset,uv_index_max&temperature_unit=fahrenheit&windspeed_unit=mph&timezone=America%2FNew_York&forecast_days=1`),
-    fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?begin_date=${ds}&end_date=${ds}&station=${SANDY_HOOK}&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&application=LBIBeachDay&format=json`),
-    fetch(`https://api.tidesandcurrents.noaa.gov/api/prod/datagetter?date=latest&station=${STEEL_PIER}&product=water_temperature&units=english&time_zone=lst_ldt&format=json&application=LBIBeachDay`)
+    fetch(`${PROXY}/api/prod/datagetter?begin_date=${ds}&end_date=${ds}&station=8534208&product=predictions&datum=MLLW&time_zone=lst_ldt&interval=hilo&units=english&application=LBIBeachDay&format=json`),
+    fetch(`${PROXY}/api/prod/datagetter?date=latest&station=${STEEL_PIER}&product=water_temperature&units=english&time_zone=lst_ldt&format=json&application=LBIBeachDay`)
   ]);
   let weather=null,rawTides=[],waterTemp=null;
   if(wR.status==="fulfilled"&&wR.value.ok)weather=await wR.value.json();
@@ -271,7 +270,7 @@ function processTides(raw){
     const[dp,tp]=t.t.split(" ");
     const base=new Date(`${dp}T${tp}:00`);
     const hi=t.type==="H";
-    return{time:addMin(base,hi?HIGH_OFF:LOW_OFF),height:parseFloat(t.v).toFixed(1),isHigh:hi};
+    return{time:new Date(`${dp}T${tp}:00`),height:parseFloat(t.v).toFixed(1),isHigh:hi};
   }).sort((a,b)=>a.time-b.time);
 }
 
@@ -378,7 +377,7 @@ function render({weather,rawTides,waterTemp}){
           <span class="tide-ht">${t.height} ft</span>
         </div>`).join('')}
       </div>
-      <div class="tide-src">ℹ️ Ocean tides · Sandy Hook reference station</div>
+      <div class="tide-src">ℹ️ Beach Haven Coast Guard Station</div>
     </div>
 
     <div class="card">
